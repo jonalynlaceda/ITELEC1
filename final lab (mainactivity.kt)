@@ -1,0 +1,84 @@
+package com.example.mainactivity
+
+import android.os.Bundle
+import android.view.animation.AnimationUtils
+import android.widget.ArrayAdapter
+import android.widget.ImageView
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import com.example.mainactivity.databinding.ActivityMainBinding
+
+class MainActivity : AppCompatActivity() {
+
+    private lateinit var binding: ActivityMainBinding
+
+    private val images = intArrayOf(R.drawable.ic_launcher_background, R.drawable.ic_launcher_foreground)
+    private var imageIndex = 0
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        val countries = resources.getStringArray(R.array.countries_list)
+        val options = resources.getStringArray(R.array.spinner_items)
+
+        val countryAdapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, countries)
+        binding.autoCountry.setAdapter(countryAdapter)
+
+        val spinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, options)
+        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        binding.spinnerSample.adapter = spinnerAdapter
+
+        binding.standardButton.setOnClickListener {
+            Toast.makeText(this, "Standard Button: Action Executed!", Toast.LENGTH_SHORT).show()
+        }
+
+        binding.imageButton.setOnClickListener {
+            Toast.makeText(this, "Image Button: Image Action Triggered!", Toast.LENGTH_SHORT).show()
+        }
+
+        binding.toggleButton.setOnCheckedChangeListener { _, isChecked ->
+            val toastMessage = if (isChecked) "Toggle Button: ON" else "Toggle Button: OFF"
+            Toast.makeText(this, toastMessage, Toast.LENGTH_SHORT).show()
+        }
+
+        binding.submitButton.setOnClickListener {
+            val name = binding.editTextName.text.toString()
+            val country = binding.autoCountry.text.toString()
+            val selectedOption = binding.spinnerSample.selectedItem.toString()
+            val toggleState = if (binding.toggleButton.isChecked) "ON" else "OFF"
+
+            val outputMessage = "Name: $name\nCountry: $country\nOption: $selectedOption\nToggle State: $toggleState"
+            Toast.makeText(this, outputMessage, Toast.LENGTH_LONG).show()
+        }
+
+        setupImageSwitcher()
+
+        binding.switchImageButton.setOnClickListener {
+            imageIndex = (imageIndex + 1) % images.size
+            binding.imageSwitcher.setImageResource(images[imageIndex])
+            Toast.makeText(this, "Switched to Image ${imageIndex + 1}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun setupImageSwitcher() {
+        binding.imageSwitcher.setFactory {
+            val imageView = ImageView(applicationContext)
+            imageView.scaleType = ImageView.ScaleType.FIT_CENTER
+            imageView.layoutParams = android.widget.FrameLayout.LayoutParams(
+                android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+                android.widget.FrameLayout.LayoutParams.MATCH_PARENT
+            )
+            imageView
+        }
+
+        val fadeIn = AnimationUtils.loadAnimation(this, android.R.anim.fade_in)
+        val fadeOut = AnimationUtils.loadAnimation(this, android.R.anim.fade_out)
+        binding.imageSwitcher.inAnimation = fadeIn
+        binding.imageSwitcher.outAnimation = fadeOut
+
+        binding.imageSwitcher.setImageResource(images[imageIndex])
+    }
+}
