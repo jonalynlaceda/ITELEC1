@@ -1,0 +1,751 @@
+Build.gradle.kts (: app)
+
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+plugins {
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
+}
+
+android {
+    namespace = "com.example.diceduel"
+    compileSdk = 34
+
+    defaultConfig {
+        applicationId = "com.example.diceduel"
+        minSdk = 21
+        targetSdk = 34
+        versionCode = 1
+        versionName = "1.0"
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        getByName("release") {
+            isMinifyEnabled = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
+
+// Ensure Kotlin JVM target is compatible
+tasks.withType<KotlinCompile> {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
+
+dependencies {
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.10")
+    implementation("androidx.core:core-ktx:1.10.1")
+    implementation("androidx.appcompat:appcompat:1.7.0")
+    implementation("com.google.android.material:material:1.9.0")
+    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
+
+    testImplementation("junit:junit:4.13.2")
+    androidTestImplementation("androidx.test.ext:junit:1.1.6")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+}
+
+activity_main.xml
+
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="14dp"
+    android:background="@color/white">
+
+    <LinearLayout
+        android:id="@+id/topPlayer"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:padding="8dp">
+
+        <TextView
+            android:id="@+id/tvPlayer2Name"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="Player 2"
+            android:textSize="18sp"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/tvPlayer2Score"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Score: 0"
+            android:textSize="18sp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/dice_area"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginTop="24dp"
+        app:layout_constraintTop_toBottomOf="@id/topPlayer"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageView
+            android:id="@+id/dice1"
+            android:layout_width="140dp"
+            android:layout_height="140dp"
+            android:src="@drawable/dice_1"
+            android:contentDescription="Dice 1"/>
+
+        <ImageView
+            android:id="@+id/dice2"
+            android:layout_width="140dp"
+            android:layout_height="140dp"
+            android:layout_marginStart="18dp"
+            android:src="@drawable/dice_1"
+            android:contentDescription="Dice 2"/>
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvInfo"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Tap Roll to begin"
+        android:textSize="16sp"
+        android:gravity="center"
+        android:layout_marginTop="12dp"
+        app:layout_constraintTop_toBottomOf="@id/dice_area"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <LinearLayout
+        android:id="@+id/buttonRow"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginTop="14dp"
+        app:layout_constraintTop_toBottomOf="@id/tvInfo"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <Button
+            android:id="@+id/btnRoll"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Roll"/>
+
+        <Button
+            android:id="@+id/btnNewGame"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="New Game"
+            android:layout_marginStart="12dp"/>
+
+        <Button
+            android:id="@+id/btnToggleMode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Mode: PvA"
+            android:layout_marginStart="12dp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/bottomPlayer"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:padding="8dp">
+
+        <TextView
+            android:id="@+id/tvPlayer1Name"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="Player 1"
+            android:textSize="18sp"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/tvPlayer1Score"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Score: 0"
+            android:textSize="18sp"/>
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
+
+MainActivity.java
+
+package com.example.diceduel;
+
+import android.media.MediaPlayer;
+import android.os.Bundle;
+import android.os.Handler;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+public class MainActivity extends AppCompatActivity {
+
+    GameManager game;
+    ImageView dice1, dice2;
+    TextView tvP1Name, tvP2Name, tvP1Score, tvP2Score, tvInfo;
+    Button btnRoll, btnNewGame, btnToggleMode;
+
+    int[] diceDrawables;
+    Handler handler = new Handler();
+
+    MediaPlayer mpRoll, mpSteal, mpWin;
+
+    private static final String KEY_GAME = "key_game";
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        // UI refs
+        dice1 = findViewById(R.id.dice1);
+        dice2 = findViewById(R.id.dice2);
+        tvP1Name = findViewById(R.id.tvPlayer1Name);
+        tvP2Name = findViewById(R.id.tvPlayer2Name);
+        tvP1Score = findViewById(R.id.tvPlayer1Score);
+        tvP2Score = findViewById(R.id.tvPlayer2Score);
+        tvInfo = findViewById(R.id.tvInfo);
+        btnRoll = findViewById(R.id.btnRoll);
+        btnNewGame = findViewById(R.id.btnNewGame);
+        btnToggleMode = findViewById(R.id.btnToggleMode);
+
+        diceDrawables = new int[]{
+                R.drawable.dice_1, R.drawable.dice_2, R.drawable.dice_3,
+                R.drawable.dice_4, R.drawable.dice_5, R.drawable.dice_6
+        };
+
+        // load sounds if available in res/raw
+        try { mpRoll = MediaPlayer.create(this, R.raw.roll); } catch (Exception e){ mpRoll=null; }
+
+        // Restore state or create new game
+        if (savedInstanceState != null && savedInstanceState.getSerializable(KEY_GAME) != null) {
+            game = (GameManager) savedInstanceState.getSerializable(KEY_GAME);
+            if (game != null) game.ensureRng();
+        } else {
+            game = new GameManager();
+        }
+
+        updateUi();
+
+        btnRoll.setOnClickListener(v -> {
+            btnRoll.setEnabled(false);
+            performRollForActivePlayer();
+        });
+
+        btnNewGame.setOnClickListener(v -> {
+            game = new GameManager();
+            updateUi();
+            toast("New game started");
+            btnRoll.setEnabled(true);
+        });
+
+        btnToggleMode.setOnClickListener(v -> {
+            // toggle player 2 human/ai
+            game.players[1].isHuman = !game.players[1].isHuman;
+            btnToggleMode.setText(game.players[1].isHuman ? "Mode: 2P" : "Mode: PvA");
+            toast("Mode: " + (game.players[1].isHuman ? "Two players" : "Player vs AI"));
+            updateUi();
+        });
+
+        // if AI is first and not human, auto-roll after small delay
+        if (!game.players[game.activePlayer].isHuman) {
+            handler.postDelayed(() -> {
+                btnRoll.setEnabled(false);
+                performRollForActivePlayer();
+            }, 800);
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putSerializable(KEY_GAME, game);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mpRoll != null) mpRoll.release();
+        if (mpSteal != null) mpSteal.release();
+        if (mpWin != null) mpWin.release();
+    }
+
+    void performRollForActivePlayer() {
+        // play roll sound
+        if (mpRoll != null) try { mpRoll.start(); } catch (Exception ignored){}
+
+        // play dice animation (rotate + scale)
+        Animation rot = AnimationUtils.loadAnimation(this, R.anim.rotate);
+        Animation bounce = AnimationUtils.loadAnimation(this, R.anim.scale_bounce);
+        dice1.startAnimation(rot);
+        dice2.startAnimation(rot);
+        dice1.startAnimation(bounce);
+        dice2.startAnimation(bounce);
+
+        // Simulate small rolling delay
+        handler.postDelayed(() -> {
+            int[] roll = game.rollDice();
+            int d1 = roll[0];
+            int d2 = roll[1];
+
+            showDiceFaces(d1, d2);
+            processRoll(d1, d2);
+
+            updateUi();
+
+            // check win
+            if (game.checkWin()) {
+                if (mpWin != null) try { mpWin.start(); } catch (Exception ignored){}
+                String winnerName = game.players[0].score > game.players[1].score ? game.players[0].name : game.players[1].name;
+                toast("Game over! Winner: " + winnerName);
+                btnRoll.setEnabled(false);
+                return;
+            }
+
+            // pass turn
+            game.activePlayer = 1 - game.activePlayer;
+
+            // enable roll and if next is AI auto-roll
+            handler.postDelayed(() -> {
+                if (game.players[game.activePlayer].isHuman) {
+                    btnRoll.setEnabled(true);
+                } else {
+                    btnRoll.setEnabled(false);
+                    handler.postDelayed(this::performRollForActivePlayer, 700);
+                }
+            }, 800);
+
+        }, 800); // end delayed roll
+    }
+
+    void showDiceFaces(int d1, int d2) {
+        if (d1 >= 1 && d1 <= 6) dice1.setImageResource(diceDrawables[d1 - 1]);
+        if (d2 >= 1 && d2 <= 6) dice2.setImageResource(diceDrawables[d2 - 1]);
+    }
+
+    void processRoll(int d1, int d2) {
+        Player p = game.players[game.activePlayer];
+        Player opp = game.players[1 - game.activePlayer];
+        int sum = d1 + d2;
+
+        if (p.previousSum == -1) {
+            // first roll: set previousSum only
+            p.previousSum = sum;
+            tvInfo.setText(p.name + " rolled " + sum + " (first roll)");
+            return;
+        }
+
+        int diff = sum - p.previousSum;
+        if (diff > 0) {
+            p.score += diff;
+            tvInfo.setText(p.name + " gained +" + diff);
+        } else if (diff < 0) {
+            p.score += diff; // negative reduces score
+            tvInfo.setText(p.name + " lost " + (-diff));
+        } else {
+            tvInfo.setText(p.name + " rolled the same (" + sum + ")");
+        }
+
+        // Doubles steal mechanic
+        if (d1 == d2) {
+            int steal = d1;
+            opp.score -= steal;
+            p.score += steal;
+            if (mpSteal != null) try { mpSteal.start(); } catch (Exception ignored){}
+            tvInfo.setText(tvInfo.getText() + " — Doubles! Stole " + steal);
+        }
+
+        p.previousSum = sum;
+    }
+
+    void updateUi() {
+        tvP1Name.setText(game.players[0].name);
+        tvP2Name.setText(game.players[1].name + (game.players[1].isHuman ? " (Human)" : " (AI)"));
+        tvP1Score.setText("Score: " + game.players[0].score);
+        tvP2Score.setText("Score: " + game.players[1].score);
+        btnToggleMode.setText(game.players[1].isHuman ? "Mode: 2P" : "Mode: PvA");
+    }
+
+    void toast(String msg) {
+        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+    }
+}
+
+
+
+
+rotate.xml
+
+<?xml version="1.0" encoding="utf-8"?>
+<rotate xmlns:android="http://schemas.android.com/apk/res/android"
+    android:fromDegrees="0"
+    android:toDegrees="360"
+    android:pivotX="50%"
+    android:pivotY="50%"
+    android:duration="600" />
+
+
+
+scale_bounce.xml
+<?xml version="1.0" encoding="utf-8"?>
+<scale xmlns:android="http://schemas.android.com/apk/res/android"
+    android:fromXScale="1.0"
+    android:fromYScale="1.0"
+    android:toXScale="1.08"
+    android:toYScale="1.08"
+    android:pivotX="50%"
+    android:pivotY="50%"
+    android:duration="600"
+    android:interpolator="@android:anim/overshoot_interpolator"/>
+
+
+
+ic_launcher_background.xml
+
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#3DDC84"
+        android:pathData="M0,0h108v108h-108z" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M9,0L9,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M19,0L19,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M29,0L29,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M39,0L39,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M49,0L49,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M59,0L59,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M69,0L69,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M79,0L79,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M89,0L89,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M99,0L99,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,9L108,9"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,19L108,19"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,29L108,29"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,39L108,39"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,49L108,49"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,59L108,59"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,69L108,69"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,79L108,79"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,89L108,89"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,99L108,99"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M19,29L89,29"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M19,39L89,39"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M19,49L89,49"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M19,59L89,59"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M19,69L89,69"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M19,79L89,79"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M29,19L29,89"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M39,19L39,89"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M49,19L49,89"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M59,19L59,89"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M69,19L69,89"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M79,19L79,89"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+</vector>
+
+
+
+ic_launcher_foreground
+
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path android:pathData="M31,63.928c0,0 6.4,-11 12.1,-13.1c7.2,-2.6 26,-1.4 26,-1.4l38.1,38.1L107,108.928l-32,-1L31,63.928z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:endX="85.84757"
+                android:endY="92.4963"
+                android:startX="42.9492"
+                android:startY="49.59793"
+                android:type="linear">
+                <item
+                    android:color="#44000000"
+                    android:offset="0.0" />
+                <item
+                    android:color="#00000000"
+                    android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillType="nonZero"
+        android:pathData="M65.3,45.828l3.8,-6.6c0.2,-0.4 0.1,-0.9 -0.3,-1.1c-0.4,-0.2 -0.9,-0.1 -1.1,0.3l-3.9,6.7c-6.3,-2.8 -13.4,-2.8 -19.7,0l-3.9,-6.7c-0.2,-0.4 -0.7,-0.5 -1.1,-0.3C38.8,38.328 38.7,38.828 38.9,39.228l3.8,6.6C36.2,49.428 31.7,56.028 31,63.928h46C76.3,56.028 71.8,49.428 65.3,45.828zM43.4,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2c-0.3,-0.7 -0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C45.3,56.528 44.5,57.328 43.4,57.328L43.4,57.328zM64.6,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2s-0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C66.5,56.528 65.6,57.328 64.6,57.328L64.6,57.328z"
+        android:strokeWidth="1"
+        android:strokeColor="#00000000" />
+</vector>
+
+
+
+strings.xml
+
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Dice Duel</string>
+</resources>
+
+
+
+ids.xml
+
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- IDs used in layouts -->
+    <item name="dice1" type="id" />
+    <item name="dice2" type="id" />
+    <item name="tvPlayer1Name" type="id" />
+    <item name="tvPlayer1Score" type="id" />
+    <item name="tvPlayer2Name" type="id" />
+    <item name="tvPlayer2Score" type="id" />
+    <item name="tvInfo" type="id" />
+    <item name="btnRoll" type="id" />
+    <item name="btnNewGame" type="id" />
+    <item name="btnToggleMode" type="id" />
+    <!-- add more ids here if you use them in layouts -->
+</resources>
+
+
+
+colors.xml
+
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="purple_500">#6200EE</color>
+    <color name="purple_700">#3700B3</color>
+    <color name="teal_200">#03DAC5</color>
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+</resources>
+
+
+
+Styles.xml
+
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.DiceDuel" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/purple_500</item>
+        <item name="colorPrimaryVariant">@color/purple_700</item>
+        <item name="colorSecondary">@color/teal_200</item>
+        <item name="android:statusBarColor">@color/purple_700</item>
+    </style>
+</resources>
+
+
+
+data_extraction_rules.xml
+
+<?xml version="1.0" encoding="utf-8"?><!--
+   Sample data extraction rules file; uncomment and customize as necessary.
+   See https://developer.android.com/about/versions/12/backup-restore#xml-changes
+   for details.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <!-- TODO: Use <include> and <exclude> to control what is backed up.
+        <include .../>
+        <exclude .../>
+        -->
+    </cloud-backup>
+    <!--
+    <device-transfer>
+        <include .../>
+        <exclude .../>
+    </device-transfer>
+    -->
+</data-extraction-rules>
+
+
+
+backup_rules.xml
+
+<?xml version="1.0" encoding="utf-8"?><!--
+   Sample backup rules file; uncomment and customize as necessary.
+   See https://developer.android.com/guide/topics/data/autobackup
+   for details.
+   Note: This file is ignored for devices older than API 31
+   See https://developer.android.com/about/versions/12/backup-restore
+-->
+<full-backup-content>
+    <!--
+   <include domain="sharedpref" path="."/>
+   <exclude domain="sharedpref" path="device.xml"/>
+-->
+</full-backup-content>
+
